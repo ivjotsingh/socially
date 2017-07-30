@@ -19,7 +19,17 @@
         {{ post.caption }}
     </p>
 
-    <img src="{{ post.image_url }}">
+    <img width="500px" height="500px" src="{{ post.image_url }}">
+
+        <form method="POST" action="/social/like/">
+            {% csrf_token %}
+            <input name="post" type="hidden" value="{{post.id}}">
+            {% if post.is_liked %}
+                <input type="submit" class="btn-default btn" value="Unlike" >
+            {% else %}
+                <input type="submit" class="btn-default btn" value="like" >
+            {% endif %}
+        </form>
     </div>
     {% endfor %}
 

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
-from social.forms import SignUp_form,Login_form,Post_form
-from social.models import User_model,SessionToken_model,Post_model
+from social.forms import SignUp_form,Login_form,Post_form,Like_form
+from social.models import User_model,SessionToken_model,Post_model,Like_model
 from django.shortcuts import render,redirect
 from django.contrib.auth.hashers import make_password,check_password
 from socially.settings import BASE_DIR
@@ -99,3 +99,19 @@ def post_view(request):
         return render(request,'post.html',{'form': form})
     else:
         return redirect('/social/login/')
+
+
+def Like_view(request):
+    user=check_validation(request)
+    if user:
+        if request.method=='POST':
+            form=Like_form(request.POST)
+            if form.is_valid():
+                post_id=form.cleaned_data.get('post').id
+                existing_like=Like_model.object.filter(user=user,post=post_id)
+                if existing_like:
+                    existing_like.delete()
+                else:
+                    like=Like_model.object.create(user=user,post=post_id)
+                    like.save()
+    else:

@@ -26,5 +26,13 @@ class Post_model(models.Model):
     image=models.FileField(upload_to="user_images")
     image_url=models.CharField(max_length=200)
     caption=models.CharField(max_length=200)
+    is_liked=models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+
+
+class Like_model(models.Model):
+    user=models.ForeignKey(User_model)
+    post=models.ForeignKey(Post_model)
+    created_on=models.DateTimeField(auto_now_add=True)
+    updated_on=models.DateTimeField(auto_now=True)
