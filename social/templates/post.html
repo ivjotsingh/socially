@@ -1,0 +1,22 @@
+{% load staticfiles %}
+
+<html>
+    <head>
+        <title>
+            create own post
+        </title>
+
+    </head>
+
+    <body>
+    <h3>create you post </h3>
+        <form method="post" enctype = "multipart/form-data" >
+            {% csrf_token %}
+            {{ form.as_p }}
+
+
+            <input type="submit" value="create_post">
+        </form>
+    </body>
+
+</html>

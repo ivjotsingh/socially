@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from social.forms import SignUp_form,Login_form
-from social.models import User_model,SessionToken_model
+from social.forms import SignUp_form,Login_form,Post_form
+from social.models import User_model,SessionToken_model,Post_model
 from django.shortcuts import render,redirect
 from django.contrib.auth.hashers import make_password,check_password
-import ctypes
-
+from socially.settings import BASE_DIR
+from imgurpython import ImgurClient
 def signup_view(request):
     if request.method == 'POST':
         form = SignUp_form(request.POST)
@@ -20,7 +19,7 @@ def signup_view(request):
                     user = User_model(name=name, password=make_password(password), email=email, username=username)
                     user.save()
 
-                    return render(request, 'login.html')
+                    return render(request,'login.html')
                 else:
                     form= SignUp_form()
             else:
@@ -33,34 +32,70 @@ def signup_view(request):
 
     return render(request, 'sign_up.html', {'form': form})
 
+
 def login_view(request):
-    data=""
-    if request.method=="POST":
-        form=Login_form(request.POST)
+    response_data = {}
+    if request.method == "POST":
+        form = Login_form(request.POST)
         if form.is_valid():
-            username=form.cleaned_data['username']
-            password=form.cleaned_data['password']
-            user=User_model.objects.filter(username=username).first()
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = User_model.objects.filter(username=username).first()
 
             if user:
-                if check_password(password,user.password):
-                    token=SessionToken_model(user=user)
+                if check_password(password, user.password):
+                    token = SessionToken_model(user=user)
                     token.createToken()
                     token.save()
-                    response=redirect('feed/')
+                    response = redirect('/social/feed/')
                     response.set_cookie(key='sessionToken', value=token.sessionToken)
                     return response
-                    data=""
-
                 else:
-                    data="incorrect pass"
+                    response_data['message'] = 'Incorrect Password! Please try again!'
 
-    else:
-        form=Login_form()
+    elif request.method == 'GET':
+        form = Login_form()
 
-
-    return render(request,'login.html',{'form': form,'data':data})
+    response_data['form'] = form
+    return render(request, 'login.html', response_data)
 
 
 def feed_view(request):
-    return render(request,'feed.html')
+    user=check_validation(request)
+    if user:
+        posts=Post_model.objects.all()
+        return render(request,'feed.html',{'posts':posts})
+
+
+def check_validation(request):
+    if request.COOKIES.get('sessionToken'):
+        session = SessionToken_model.objects.filter(sessionToken=request.COOKIES.get('sessionToken')).first()
+        if session:
+            return session.user
+    else:
+        return None
+
+def post_view(request):
+    user=check_validation(request)
+    if user:
+        if request.method=="POST":
+            form=Post_form(request.POST,request.FILES)
+            if form.is_valid():
+                caption=form.cleaned_data['caption']
+                image=form.cleaned_data['image']
+                post=Post_model(user=user,caption=caption,image=image)
+                post.save()
+                path=str(BASE_DIR + post.image.url)
+                YOUR_CLIENT_ID = "0002161fe35de3d"
+                YOUR_CLIENT_SECRET = "f45b827e48c1444021046778a2c3e3e573432709"
+                client = ImgurClient(YOUR_CLIENT_ID, YOUR_CLIENT_SECRET)
+                post.image_url = client.upload_from_path(path, anon=True)['link']
+                post.save()
+                return redirect('/social/feed/')
+
+        else:
+            form=Post_form()
+
+        return render(request,'post.html',{'form': form})
+    else:
+        return redirect('/social/login/')
