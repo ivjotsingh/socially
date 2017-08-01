@@ -13,6 +13,9 @@ class UserModel(models.Model):
 	created_on = models.DateTimeField(auto_now_add=True)
 	updated_on = models.DateTimeField(auto_now=True)
 
+	def __str__(self):
+		return self.name + "-" + self.username
+
 class SessionToken(models.Model):
 	user = models.ForeignKey(UserModel)
 	session_token = models.CharField(max_length=255)
@@ -32,6 +35,8 @@ class PostModel(models.Model):
 	updated_on = models.DateTimeField(auto_now=True)
 	has_liked = False
 
+	def __str__(self):
+		return self.user.username +"'s post"
 
 	@property
 	def like_count(self):

@@ -6,6 +6,7 @@ class SignUpForm(forms.ModelForm):
     class Meta:
         model = UserModel
         fields=['email','username','name','password']
+        widgets = {'password':forms.PasswordInput()}
 
 class LoginForm(forms.ModelForm):
     class Meta:
