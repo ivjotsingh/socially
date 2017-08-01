@@ -1,23 +1,32 @@
 from django import forms
-from social.models import User_model,Post_model,Like_model
+from models import UserModel, PostModel, LikeModel, CommentModel
 
-class SignUp_form(forms.ModelForm):
-    class Meta:
-        model=User_model
-        fields=['name','username','email','password']
-        widgets = {'password': forms.PasswordInput() }
 
-class Login_form(forms.ModelForm):
+class SignUpForm(forms.ModelForm):
     class Meta:
-        model=User_model
-        fields=['username','password']
+        model = UserModel
+        fields=['email','username','name','password']
 
-class Post_form(forms.ModelForm):
+class LoginForm(forms.ModelForm):
     class Meta:
-        model=Post_model
-        fields=['caption','image']
+        model = UserModel
+        fields = ['username', 'password']
 
-class Like_form(forms.ModelForm):
+class PostForm(forms.ModelForm):
     class Meta:
-        model=Like_model
+        model = PostModel
+        fields=['image', 'caption']
+
+
+class LikeForm(forms.ModelForm):
+
+    class Meta:
+        model = LikeModel
         fields=['post']
+
+
+class CommentForm(forms.ModelForm):
+
+    class Meta:
+        model = CommentModel
+        fields = ['comment_text', 'post']
