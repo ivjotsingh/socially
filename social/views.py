@@ -123,6 +123,7 @@ def feed_view(request):
 
         return redirect('/social/login/')
 
+#retriving images based on analysis of content
 def tag_view(request):
     user = check_validation(request)
     if user:
