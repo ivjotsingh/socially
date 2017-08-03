@@ -28,6 +28,7 @@ class SessionToken(models.Model):
 
 class PostModel(models.Model):
 	user = models.ForeignKey(UserModel)
+
 	image = models.FileField(upload_to='user_images')
 	image_url = models.CharField(max_length=255)
 	caption = models.CharField(max_length=240)
@@ -36,7 +37,7 @@ class PostModel(models.Model):
 	has_liked = False
 
 	def __str__(self):
-		return self.user.username +"'s post"
+		return self.user.username +str(self.id)
 
 	@property
 	def like_count(self):
@@ -45,6 +46,18 @@ class PostModel(models.Model):
 	@property
 	def comments(self):
 		return CommentModel.objects.filter(post=self).order_by('-created_on')
+
+class TagModel(models.Model):
+	tag_text=models.CharField(max_length=20)
+
+	def __str__(self):
+
+		return self.tag_text
+
+class FetchModel(models.Model):
+    id_of_tag=models.ForeignKey(TagModel)
+    id_of_post=models.ForeignKey(PostModel)
+
 
 class LikeModel(models.Model):
 	user = models.ForeignKey(UserModel)

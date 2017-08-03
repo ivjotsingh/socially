@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
-from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
+from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel,TagModel,FetchModel
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import timedelta
 from django.utils import timezone
+from django.http import HttpResponse
 from socially.settings import BASE_DIR
 from keys import YOUR_CLIENT_ID,YOUR_CLIENT_SECRET
 from imgurpython import ImgurClient
-
-
+from clarifai.rest import ClarifaiApp
+from django.db.models import Q
 # Create your views here.
+CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
+app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
 
 def signup_view(request):
     if request.method == "POST":
@@ -74,14 +77,34 @@ def post_view(request):
                 client = ImgurClient(YOUR_CLIENT_ID, YOUR_CLIENT_SECRET)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
+                model = app.models.get('general-v1.3')  # notify model which we are going to use from clarifai
+                response = model.predict_by_url(url=post.image_url)  # pass the url of current image
 
-                return redirect('/social/feed/')
+                if response["status"]["code"] == 10000:
+                    if response["outputs"]:
+                        if response["outputs"][0]["data"]:
+                            if response["outputs"][0]["data"]["concepts"]:
 
+                                for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
+                                    hash = TagModel(tag_text=response["outputs"][0]["data"]["concepts"][index]["name"])
+
+                                    hash.save()
+
+                                return redirect('/social/feed/')
+
+                            else:
+                                print "No Concepts List Error"
+                        else:
+                            print "No Data List Error"
+                    else:
+                        print "No Outputs List Error"
+                else:
+                    print "Response Code Error"
         else:
             form = PostForm()
         return render(request, 'post.html', {'form': form})
     else:
-        return redirect('/social/login/')
+        return redirect('/login/')
 
 
 def feed_view(request):
@@ -98,6 +121,39 @@ def feed_view(request):
         return render(request, 'feed.html', {'posts': posts})
     else:
 
+        return redirect('/social/login/')
+
+def tag_view(request):
+    user = check_validation(request)
+    if user:
+        q = request.GET.get('q')
+        hash= TagModel.objects.filter(tag_text = q).first()
+        posts = FetchModel.objects.filter(id_of_tag=hash)
+        posts=[post.id_of_post for post in posts]
+        if (posts == []):
+            return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
+        for post in posts:
+            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            if existing_like:
+                post.has_liked = True
+        return render(request, 'feed.html', {'posts': posts})
+    else:
+        return redirect('/social/login/')
+
+
+def user_view(request):
+    user=check_validation(request)
+
+    if user:
+        query=request.GET.get('q')
+        user=UserModel.objects.filter(username=query).first()
+        posts=PostModel.objects.filter(user=user)
+        for post in posts:
+            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            if existing_like:
+                post.has_liked = True
+        return render(request, 'feed.html', {'posts': posts})
+    else:
         return redirect('/social/login/')
 
 
