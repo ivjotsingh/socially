@@ -12,6 +12,12 @@
         <input type="submit" class="btn-default btn" value="Create Post">
     </form>
 
+    <form method="post" action="/social/logout/">
+        {% csrf_token %}
+        <input type="submit" value="Logout">
+
+    </form>
+
 
     {% for post in posts %}
 

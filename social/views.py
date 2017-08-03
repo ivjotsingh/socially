@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
-from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel,TagModel,FetchModel
+from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel, TagModel, FetchModel
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import timedelta
 from django.utils import timezone
@@ -9,10 +9,10 @@ from socially.settings import BASE_DIR
 from keys import YOUR_CLIENT_ID,YOUR_CLIENT_SECRET
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
-from django.db.models import Q
-# Create your views here.
+
 CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
 app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
+
 
 def signup_view(request):
     if request.method == "POST":
@@ -22,14 +22,13 @@ def signup_view(request):
             name = form.cleaned_data['name']
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            # saving data to DB
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-            return render(request, 'login.html')
-            # return redirect('login/')
-    else:
-        form = SignUpForm()
-
+            return redirect('/social/login/')
+        else:
+            form = "fillempty"
+            return render(request, 'sign_up.html', {'form': form})
+    form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
 
@@ -62,7 +61,6 @@ def login_view(request):
 
 def post_view(request):
     user = check_validation(request)
-
     if user:
         if request.method == 'POST':
             form = PostForm(request.POST, request.FILES)
@@ -73,10 +71,10 @@ def post_view(request):
                 post.save()
 
                 path = str(BASE_DIR + post.image.url)
-
                 client = ImgurClient(YOUR_CLIENT_ID, YOUR_CLIENT_SECRET)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
+
                 model = app.models.get('general-v1.3')  # notify model which we are going to use from clarifai
                 response = model.predict_by_url(url=post.image_url)  # pass the url of current image
 
@@ -84,11 +82,11 @@ def post_view(request):
                     if response["outputs"]:
                         if response["outputs"][0]["data"]:
                             if response["outputs"][0]["data"]["concepts"]:
-
                                 for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
                                     hash = TagModel(tag_text=response["outputs"][0]["data"]["concepts"][index]["name"])
-
                                     hash.save()
+                                    fetch=FetchModel(id_of_tag=hash,id_of_post=post)
+                                    fetch.save()
 
                                 return redirect('/social/feed/')
 
@@ -199,3 +197,10 @@ def check_validation(request):
                 return session.user
     else:
         return None
+
+def logout_view(request):
+    request.session.modified=True
+    response=redirect('/social/login/')
+    response.delete_cookie(key='session_token')
+    return response
+

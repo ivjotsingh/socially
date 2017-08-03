@@ -2,14 +2,11 @@ from django.db import models
 
 import uuid
 
-# Create your models here.
-
-
 class UserModel(models.Model):
 	email = models.EmailField()
 	name = models.CharField(max_length=120)
 	username = models.CharField(max_length=120)
-	password = models.CharField(max_length=40)
+	password = models.CharField(max_length=400)
 	created_on = models.DateTimeField(auto_now_add=True)
 	updated_on = models.DateTimeField(auto_now=True)
 
@@ -55,8 +52,8 @@ class TagModel(models.Model):
 		return self.tag_text
 
 class FetchModel(models.Model):
-    id_of_tag=models.ForeignKey(TagModel)
-    id_of_post=models.ForeignKey(PostModel)
+	id_of_tag=models.ForeignKey(TagModel)
+	id_of_post=models.ForeignKey(PostModel)
 
 
 class LikeModel(models.Model):
