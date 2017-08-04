@@ -33,7 +33,16 @@ def signup_view(request):
             # saving data to DB
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-
+            sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
+            from_email = Email("inderpreet726b@gmail.com")
+            to_email = Email(user.email)
+            subject = "lets do something bro"
+            content = Content("text/plain", "hackers")
+            mail = Mail(from_email, subject, to_email, content)
+            response = sg.client.mail.send.post(request_body=mail.get())
+            print(response.status_code)
+            print(response.body)
+            print(response.headers)
             #optional
             #send_mail(subject,message,from_email,to_list,fail_silently=True)
             # subject="Thankyou for signing up"
