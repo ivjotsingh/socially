@@ -89,17 +89,10 @@ def post_view(request):
                                     hash = TagModel(tag_text=response["outputs"][0]["data"]["concepts"][index]["name"])
 
                                     hash.save()
-
+                                    fetch=FetchModel(id_of_tag=hash,id_of_post=post)
+                                    fetch.save()
                                 return redirect('/social/feed/')
 
-                            else:
-                                print "No Concepts List Error"
-                        else:
-                            print "No Data List Error"
-                    else:
-                        print "No Outputs List Error"
-                else:
-                    print "Response Code Error"
         else:
             form = PostForm()
         return render(request, 'post.html', {'form': form})
