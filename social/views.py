@@ -9,8 +9,7 @@ from socially.settings import BASE_DIR
 from keys import YOUR_CLIENT_ID,YOUR_CLIENT_SECRET
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
-from django.db.models import Q
-# Create your views here.
+from paralleldots import sentiment,set_api_key
 CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
 app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
 
@@ -171,16 +170,22 @@ def comment_view(request):
     user = check_validation(request)
     if user and request.method == 'POST':
         form = CommentForm(request.POST)
+
         if form.is_valid():
+
             post_id = form.cleaned_data.get('post').id
-            comment_text = form.cleaned_data.get('comment_text')
-            comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
-            comment.save()
-            return redirect('/social/feed/')
+            comment_text = str(form.cleaned_data.get('comment_text'))
+            set_api_key('qvGZYufnXUmQNxbFi6h4GDlNtu30HKzhFxJvMUnAdNc')
+            review=sentiment(comment_text)
+
+            if review['sentiment']:
+                comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text,review=review['sentiment'])
+                comment.save()
+                return redirect('/social/feed/')
         else:
             return redirect('/social/feed/')
     else:
-        return redirect('/social/login')
+        return redirect('/social/login/')
 
 def logout_view(request):
     request.session.modified = True
