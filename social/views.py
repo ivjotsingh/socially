@@ -1,7 +1,16 @@
+#python
+#django
+#api
+#apps
+import sendgrid
+from sendgrid.helpers.mail import *
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel,TagModel,FetchModel
 from django.contrib.auth.hashers import make_password, check_password
+#for mailing through settings
+#from django.core.mail import send_mail
+#from django.conf import settings
 from datetime import timedelta
 from django.utils import timezone
 from django.http import HttpResponse
@@ -12,7 +21,7 @@ from clarifai.rest import ClarifaiApp
 from paralleldots import sentiment,set_api_key
 CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
 app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
-
+from socially.cre import SENDGRID_API_KEY
 def signup_view(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -24,7 +33,15 @@ def signup_view(request):
             # saving data to DB
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-            #return render(request, 'login.html')
+
+            #optional
+            #send_mail(subject,message,from_email,to_list,fail_silently=True)
+            # subject="Thankyou for signing up"
+            # message="you will enjoy our services \n we will in touch soon"
+            # from_email=settings.EMAIL_HOST_USER
+            # to_list =[user.email]
+            # send_mail(subject,message,from_email,to_list,fail_silently=True)
+            # #return render(request, 'login.html')
             return redirect('/social/login/')
     else:
         form = SignUpForm()
@@ -156,6 +173,7 @@ def tag_view_u(request,hash_tag):
         posts = FetchModel.objects.filter(id_of_tag=hash)
         posts=[post.id_of_post for post in posts]
         if (posts == []):
+            # make a 404 page and render it
             return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
         for post in posts:
             existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
@@ -189,6 +207,7 @@ def user_view_u(request,user_name):
         #not_neccessary to make list
         posts=[post for post in posts]
         if posts==[]:
+            #make a 404 page and render it
             return HttpResponse("<h1>No such user found</h1>")
         else:
             for post in posts:
