@@ -186,11 +186,16 @@ def user_view_u(request,user_name):
     if user:
         user=UserModel.objects.filter(username=user_name).first()
         posts=PostModel.objects.filter(user=user)
-        for post in posts:
-            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
-            if existing_like:
-                post.has_liked = True
-        return render(request, 'feed.html', {'posts': posts})
+        #not_neccessary to make list
+        posts=[post for post in posts]
+        if posts==[]:
+            return HttpResponse("<h1>No such user found</h1>")
+        else:
+            for post in posts:
+                existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+                if existing_like:
+                    post.has_liked = True
+            return render(request, 'feed.html', {'posts': posts})
     else:
         return redirect('/social/login/')
 
