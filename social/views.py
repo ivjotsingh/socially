@@ -25,8 +25,8 @@ def signup_view(request):
             # saving data to DB
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-            return render(request, 'login.html')
-            # return redirect('login/')
+            #return render(request, 'login.html')
+            return redirect('/social/login/')
     else:
         form = SignUpForm()
 
@@ -182,6 +182,11 @@ def comment_view(request):
     else:
         return redirect('/social/login')
 
+def logout_view(request):
+    request.session.modified = True
+    response = redirect('/social/login/')
+    response.delete_cookie(key='session_token')
+    return response
 
 # For validating the session
 def check_validation(request):
