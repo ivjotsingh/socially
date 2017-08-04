@@ -148,6 +148,22 @@ def tag_view(request):
     else:
         return redirect('/social/login/')
 
+def tag_view_u(request,hash_tag):
+    user = check_validation(request)
+    if user:
+
+        hash= TagModel.objects.filter(tag_text = hash_tag).first()
+        posts = FetchModel.objects.filter(id_of_tag=hash)
+        posts=[post.id_of_post for post in posts]
+        if (posts == []):
+            return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
+        for post in posts:
+            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            if existing_like:
+                post.has_liked = True
+        return render(request, 'feed.html', {'posts': posts})
+    else:
+        return redirect('/social/login/')
 
 def user_view(request):
     user=check_validation(request)
@@ -155,6 +171,20 @@ def user_view(request):
     if user:
         query=request.GET.get('q')
         user=UserModel.objects.filter(username=query).first()
+        posts=PostModel.objects.filter(user=user)
+        for post in posts:
+            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            if existing_like:
+                post.has_liked = True
+        return render(request, 'feed.html', {'posts': posts})
+    else:
+        return redirect('/social/login/')
+
+def user_view_u(request,user_name):
+    user=check_validation(request)
+
+    if user:
+        user=UserModel.objects.filter(username=user_name).first()
         posts=PostModel.objects.filter(user=user)
         for post in posts:
             existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
