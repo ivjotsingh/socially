@@ -50,11 +50,17 @@
             </form>
         </div>
 
-        <div>
-            {% for comment in post.comments %}
-                <p><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
-            {% endfor %}
-        </div>
+<div>
+    {% for comment in post.comments %}
+
+    {% if comment.review > 0.6 %}
+    <p style="color:blue"><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
+    {% else %}
+    <p style="color:red"><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
+    {% endif %}
+
+    {% endfor %}
+</div>
 
     {% endfor %}
 </body>
