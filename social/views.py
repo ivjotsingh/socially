@@ -102,13 +102,28 @@ def post_view(request):
 def feed_view(request):
     user = check_validation(request)
     if user:
-
         posts = PostModel.objects.all().order_by('-created_on')
 
         for post in posts:
-            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            existing_like = LikeModel.objects.filter(post=post.id, user=user).first()
             if existing_like:
                 post.has_liked = True
+
+            comments=CommentModel.objects.filter(post=post.id)
+            pos = 0
+            neg = 0
+            for comment in comments:
+
+                if comment.review>=0.6:
+                    pos+=1
+
+                else:
+                    neg+=1
+            print pos
+            if pos>neg:
+                post.has_recommended=True
+            else:
+                post.has_recommended=False
 
         return render(request, 'feed.html', {'posts': posts})
     else:
@@ -172,7 +187,6 @@ def comment_view(request):
         form = CommentForm(request.POST)
 
         if form.is_valid():
-
             post_id = form.cleaned_data.get('post').id
             comment_text = str(form.cleaned_data.get('comment_text'))
             set_api_key('qvGZYufnXUmQNxbFi6h4GDlNtu30HKzhFxJvMUnAdNc')

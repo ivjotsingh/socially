@@ -28,13 +28,13 @@ class SessionToken(models.Model):
 
 class PostModel(models.Model):
     user = models.ForeignKey(UserModel)
-
     image = models.FileField(upload_to='user_images')
     image_url = models.CharField(max_length=255)
     caption = models.CharField(max_length=240)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
-    has_liked = False
+    has_liked = models.BooleanField(default=False)
+    has_recommended= models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username +str(self.id)
@@ -73,3 +73,4 @@ class CommentModel(models.Model):
     review=models.FloatField()
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+
