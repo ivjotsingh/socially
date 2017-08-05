@@ -4,6 +4,7 @@
 #apps
 import sendgrid
 from sendgrid.helpers.mail import *
+from social.xyz import detail_view
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel,TagModel,FetchModel
@@ -21,7 +22,15 @@ from clarifai.rest import ClarifaiApp
 from paralleldots import sentiment,set_api_key
 CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
 app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
-from socially.cre import SENDGRID_API_KEY
+#from socially.cre import SENDGRID_API_KEY
+
+def index_view(request):
+    return render(request,'index.html')
+
+def detail_view(request,post_id):
+    post=PostModel.objects.filter(pk=post_id).first()
+    return render(request,'details.html',{'post':post})
+
 def signup_view(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -33,17 +42,17 @@ def signup_view(request):
             # saving data to DB
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-            sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
-            from_email = Email("inderpreet726b@gmail.com")
-            to_email = Email(user.email)
-            subject = "lets do something bro"
-            content = Content("text/plain", "hackers")
-            mail = Mail(from_email, subject, to_email, content)
-            response = sg.client.mail.send.post(request_body=mail.get())
-            print(response.status_code)
-            print(response.body)
-            print(response.headers)
-            #optional
+            # sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
+            # from_email = Email("inderpreet726b@gmail.com")
+            # to_email = Email(user.email)
+            # subject = "lets do something bro"
+            # content = Content("text/plain", "hackers")
+            # mail = Mail(from_email, subject, to_email, content)
+            # response = sg.client.mail.send.post(request_body=mail.get())
+            # print(response.status_code)
+            # print(response.body)
+            # print(response.headers)
+            # #optional
             #send_mail(subject,message,from_email,to_list,fail_silently=True)
             # subject="Thankyou for signing up"
             # message="you will enjoy our services \n we will in touch soon"
@@ -122,7 +131,7 @@ def post_view(request):
             form = PostForm()
         return render(request, 'post.html', {'form': form})
     else:
-        return redirect('/login/')
+        return redirect('/social/login/')
 
 
 def feed_view(request):
@@ -151,7 +160,7 @@ def feed_view(request):
             else:
                 post.has_recommended=False
 
-        return render(request, 'feed.html', {'posts': posts})
+        return render(request, 'fe.html', {'posts': posts})
     else:
 
         return redirect('/social/login/')
@@ -234,12 +243,14 @@ def like_view(request):
         form = LikeForm(request.POST)
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
+            post=PostModel.objects.filter(pk=post_id)
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
             if not existing_like:
                 LikeModel.objects.create(post_id=post_id, user=user)
             else:
                 existing_like.delete()
-            return redirect('/social/feed/')
+
+            return redirect('detail',post_id=post_id)
     else:
         return redirect('/social/login/')
 
@@ -251,6 +262,7 @@ def comment_view(request):
 
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
+            post = PostModel.objects.filter(pk=post_id)
             comment_text = str(form.cleaned_data.get('comment_text'))
             set_api_key('qvGZYufnXUmQNxbFi6h4GDlNtu30HKzhFxJvMUnAdNc')
             review=sentiment(comment_text)
@@ -258,9 +270,7 @@ def comment_view(request):
             if review['sentiment']:
                 comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text,review=review['sentiment'])
                 comment.save()
-                return redirect('/social/feed/')
-        else:
-            return redirect('/social/feed/')
+                return redirect('detail',post_id=post_id)
     else:
         return redirect('/social/login/')
 

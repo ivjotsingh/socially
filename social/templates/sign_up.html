@@ -9,16 +9,88 @@
 
     <body>
 
+<!DOCTYPE html>
+{% load staticfiles %}
+<head>
+  <title>SmartSocial</title>
+  <style>
+    body {
+      text-align: right;
+      background: url({% static "images/sign_up.jpg" %});
+      background-size: cover;
+      background-position: top ;
+      color: white;
+      font-family: helvetica;
+    }
+
+    header {
+      padding : -10px -10px;
+      text-align: center;
+      background: url({% static "images/sign_up_header.jpg" %});
+      background-size: cover;
+      color: white;
+    }
+
+    p {
+
+     padding : 0px 50px;
+      font-size: 22px;
+
+      }
+
+    h1 {
+    background: rgba(0, 0, 0, 0.5);
+     padding : 0px 50px;
+      font-size: 22px;
+
+      }
+    form{
+        padding: 10px 30px;
+
+    }
+
+    h3 {
+    background: rgba(0, 0, 0, 0.5);
+     padding : 0px 50px;
+      font-size: 17px;
+      }
+
+    h2 {
+     padding : 0px 50px;
+      font-size: 27px;
+      }
+
+     .login
+     {
+     padding : 15px 30px;
+     }
+    input{
+      border: 1px solid black;
+      padding: 10px;
+      font-size: 20px;
+      }
+    input[type="submit"]{
+
+      background: red;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+  <h1>Welcome to smart Social</h1>
+  <h3>Social P2P platform with automatic categorisation and recommendation system</h3>
+  </header>
+
         <form method="post" >
             {% csrf_token %}
             {{ form.as_p }}
-
             <input type="submit" value="sign_up">
-
         </form>
 
-    <div><h3>Already a user?</h3><a href="{% url 'login' %}"><input type="submit" value="Login"></a> </div>
+    <div class="login"><h2>Already a user?</h2><a href="{% url 'login' %}"><input type="submit" value="Login"></a> </div>
 
 
+</body>
     </body>
 </html>

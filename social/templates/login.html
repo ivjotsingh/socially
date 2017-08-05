@@ -1,36 +1,98 @@
-{% load staticfiles %}
-
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Instagram Clone</title>
+{% load staticfiles %}
+<head xmlns="http://www.w3.org/1999/html">
+  <title>SmartSocial</title>
+  <style>
+    body {
+      text-align: left;
+      background: url({% static "images/loginn.jpg" %});
+      background-size: cover;
+      background-position: top ;
+      color: white;
+      font-family: helvetica;
+    }
+
+    header {
+      padding : -10px -10px;
+      text-align: center;
+      background: url({% static "images/sign_up_header.jpg" %});
+      background-size: cover;
+      color: white;
+    }
+
+    p {
+
+     padding : 0px 50px;
+      font-size: 22px;
+
+      }
+
+    h1 {
+    background: rgba(0, 0, 0, 0.5);
+     padding : 0px 50px;
+      font-size: 22px;
+
+      }
+    form{
+        padding: 10px 30px;
+
+    }
+
+    h3 {
+    text-align :left;
+    background: rgba(0, 0, 0, 0.5);
+     padding : 0px 50px;
+      font-size: 17px;
+      }
+
+    h2 {
+     padding : 0px 50px;
+      font-size: 27px;
+      }
+
+     .login
+     {
+     padding : 15px 10px;
+     }
+    input{
+      border: 0px solid black;
+      padding: 10px;
+      font-size: 20px;
+      }
+    input[type="submit"]{
+
+      background: red;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-	<div class="main">
-            <h1> Instagram Clone</h1>
-            <h3>Sign Up</h3>
-    </div>
+  <header>
+  <h1>Welcome to smart Social</h1>
+  <h3>Login Below !</h3>
+  </header>
 
-    <div>
+        <div>
         <form method="post">
             {% csrf_token %}
 
             <div>
-                <label for="username">Username: </label>
-                <input id="username" type="text" name="username" value={{ username }}>
+
+                <input placeholder="Username" id="username" type="text" name="username" value={{ username }}>
             </div>
+        </br>
 
             <div>
-                <label for="password">Password: </label>
-                <input id="password" type="password" name="password" value={{ password }}>
+
+                <input placeholder="Password" id="password" type="password" name="password" value={{ password }}>
+                </br>
+                </br>
             </div>
                 <input type="submit" value="Login">
         </form>
 
-        <h2>{{ data }}</h2>
-    </div><br><br>
 
+    </div>
+<div class="login"><h2 style="color:black" >Not Registered ?</h2><a href="{% url 'signUp' %}"><input type="submit" value="Sign up here!"></a> </div>
 
 </body>
-</html>
