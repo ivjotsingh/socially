@@ -28,7 +28,31 @@ def index_view(request):
     return render(request,'index.html')
 
 def detail_view(request,post_id):
-    post=PostModel.objects.filter(pk=post_id).first()
+    user=check_validation(request)
+    if user:
+        post=PostModel.objects.filter(pk=post_id).first()
+
+        existing_like = LikeModel.objects.filter(post=post.id, user=user).first()
+        if existing_like:
+            post.has_liked = True
+
+        comments = CommentModel.objects.filter(post=post.id)
+        pos = 0
+        neg = 0
+        for comment in comments:
+
+            if comment.review >= 0.6:
+                pos += 1
+
+            else:
+                neg += 1
+        print pos
+
+        if pos > neg:
+            post.has_recommended = True
+        else:
+            post.has_recommended = False
+
     return render(request,'details.html',{'post':post})
 
 def signup_view(request):
@@ -129,7 +153,7 @@ def post_view(request):
 
         else:
             form = PostForm()
-        return render(request, 'post.html', {'form': form})
+        return render(request, 'fe.html', {'form': form})
     else:
         return redirect('/social/login/')
 
@@ -155,12 +179,13 @@ def feed_view(request):
                 else:
                     neg+=1
             print pos
+
             if pos>neg:
                 post.has_recommended=True
             else:
                 post.has_recommended=False
 
-        return render(request, 'fe.html', {'posts': posts})
+        return render(request, 'feed.html', {'posts': posts})
     else:
 
         return redirect('/social/login/')
@@ -247,7 +272,9 @@ def like_view(request):
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
             if not existing_like:
                 LikeModel.objects.create(post_id=post_id, user=user)
+                post.has_liked=True
             else:
+                post.has_liked=False
                 existing_like.delete()
 
             return redirect('detail',post_id=post_id)
