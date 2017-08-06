@@ -153,7 +153,7 @@ def post_view(request):
 
         else:
             form = PostForm()
-        return render(request, 'fe.html', {'form': form})
+        return render(request, 'post.html', {'form': form})
     else:
         return redirect('/social/login/')
 
