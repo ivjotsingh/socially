@@ -82,10 +82,17 @@
   <h3>Social P2P platform with automatic categorisation and recommendation system</h3>
   </header>
 
-        <form method="post" >
+        <form method="post" action="/social/signUp/">
             {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="sign_up">
+
+            <input type="text" pattern="^[a-zA-Z ]{3,40}$" placeholder="Full Name" name="name" required title="Minimum 3 and maximum 40 alphabets" value={{name}} ><br>
+<input type="text" pattern="[a-zA-Z 0-9-_]{3,40}" placeholder="Username" name="username" required title="Alphanumeric characters or underscore only(minimum 3 characters)" value={{username}} ><br>
+<input type="email" placeholder="Email" name="email" required value={{email}}><br>
+<input type="password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,10}"placeholder="Password" name="password" required title="Minimum eight and maximum 10 characters, at least one uppercase letter, one lowercase letter, one number and one special character:
+" value={{password}} ><br>
+<input  id ="submit" type="submit" value="Sign Up"><br>
+
+
         </form>
 
     <div class="login"><h2>Already a user?</h2><a href="{% url 'login' %}"><input type="submit" value="Login"></a> </div>

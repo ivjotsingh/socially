@@ -131,7 +131,6 @@ def post_view(request):
                 post.save()
 
                 path = str(BASE_DIR + post.image.url)
-
                 client = ImgurClient(YOUR_CLIENT_ID, YOUR_CLIENT_SECRET)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
@@ -142,11 +141,19 @@ def post_view(request):
                     if response["outputs"]:
                         if response["outputs"][0]["data"]:
                             if response["outputs"][0]["data"]["concepts"]:
-
+                                concepts=response["outputs"][0]["data"]["concepts"]
                                 for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
-                                    hash = TagModel(tag_text=response["outputs"][0]["data"]["concepts"][index]["name"])
+                                #for concept in concepts[:10]:
+                                    tag=response["outputs"][0]["data"]["concepts"][index]['name']
 
-                                    hash.save()
+                                    hash = TagModel.objects.filter(tag_text= tag)
+
+                                    if(hash.__len__()==0):
+                                        hash=TagModel(tag_text=tag)
+                                        hash.save()
+                                    else:
+                                        hash=hash[0]
+
                                     fetch=FetchModel(id_of_tag=hash,id_of_post=post)
                                     fetch.save()
                                 return redirect('/social/feed/')
@@ -197,7 +204,7 @@ def tag_view(request):
         q = request.GET.get('q')
         hash= TagModel.objects.filter(tag_text = q).first()
         posts = FetchModel.objects.filter(id_of_tag=hash)
-        posts=[post.id_of_post for post in posts]
+        posts=[ post.id_of_post for post in posts ]
         if (posts == []):
             return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
         for post in posts:

@@ -73,18 +73,18 @@
   </header>
 
         <div>
-        <form method="post">
+        <form method="post" action="/social/login/">
             {% csrf_token %}
 
             <div>
 
-                <input placeholder="Username" id="username" type="text" name="username" value={{ username }}>
+                <input placeholder="Username" pattern="[a-zA-Z 0-9-_]{3,40}"  required title="Alphanumeric characters or underscore only(minimum 3 characters)"id="username" type="text" name="username" value={{ username }}>
             </div>
         </br>
 
             <div>
 
-                <input placeholder="Password" id="password" type="password" name="password" value={{ password }}>
+                <input placeholder="Password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,10}" required title="Minimum eight and maximum 10 characters, at least one uppercase letter, one lowercase letter, one number and one special character:"id="password" type="password" name="password" value={{ password }}>
                 </br>
                 </br>
             </div>
