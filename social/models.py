@@ -82,7 +82,7 @@ class CommentModel(models.Model):
     user = models.ForeignKey(UserModel)
     post = models.ForeignKey(PostModel)
     comment_text = models.CharField(max_length=555)
-    review=models.FloatField()
+    review=models.CharField(max_length=20)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
