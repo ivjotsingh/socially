@@ -4,7 +4,6 @@
 # apps
 import sendgrid
 from sendgrid.helpers.mail import *
-from social.xyz import detail_view
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel, TagModel, FetchModel
