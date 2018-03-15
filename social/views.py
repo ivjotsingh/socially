@@ -1,36 +1,39 @@
-#python
-#django
-#api
-#apps
+# python
+# django
+# api
+# apps
 import sendgrid
 from sendgrid.helpers.mail import *
-from social.xyz import detail_view
 from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, PostForm, LikeForm, CommentForm
-from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel,TagModel,FetchModel
+from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel, TagModel, FetchModel
 from django.contrib.auth.hashers import make_password, check_password
-#for mailing through settings
-#from django.core.mail import send_mail
-#from django.conf import settings
+# for mailing through settings
+# from django.core.mail import send_mail
+# from django.conf import settings
 from datetime import timedelta
 from django.utils import timezone
 from django.http import HttpResponse
 from socially.settings import BASE_DIR
-from keys import YOUR_CLIENT_ID,YOUR_CLIENT_SECRET
+from keys import YOUR_CLIENT_ID, YOUR_CLIENT_SECRET
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
-from paralleldots import sentiment,set_api_key
+from paralleldots import sentiment, set_api_key
+
 CLARIFAI_API_KEY = 'f3a37216201f4c3faae31795abd09ee6'
 app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
-#from socially.cre import SENDGRID_API_KEY
+
+
+# from socially.cre import SENDGRID_API_KEY
 
 def index_view(request):
-    return render(request,'index.html')
+    return render(request, 'index.html')
 
-def detail_view(request,post_id):
-    user=check_validation(request)
+
+def detail_view(request, post_id):
+    user = check_validation(request)
     if user:
-        post=PostModel.objects.filter(pk=post_id).first()
+        post = PostModel.objects.filter(pk=post_id).first()
 
         existing_like = LikeModel.objects.filter(post=post.id, user=user).first()
         if existing_like:
@@ -53,7 +56,8 @@ def detail_view(request,post_id):
         else:
             post.has_recommended = False
 
-    return render(request,'details.html',{'post':post})
+    return render(request, 'details.html', {'post': post})
+
 
 def signup_view(request):
     if request.method == "POST":
@@ -77,7 +81,7 @@ def signup_view(request):
             # print(response.body)
             # print(response.headers)
             # #optional
-            #send_mail(subject,message,from_email,to_list,fail_silently=True)
+            # send_mail(subject,message,from_email,to_list,fail_silently=True)
             # subject="Thankyou for signing up"
             # message="you will enjoy our services \n we will in touch soon"
             # from_email=settings.EMAIL_HOST_USER
@@ -141,20 +145,20 @@ def post_view(request):
                     if response["outputs"]:
                         if response["outputs"][0]["data"]:
                             if response["outputs"][0]["data"]["concepts"]:
-                                concepts=response["outputs"][0]["data"]["concepts"]
+                                concepts = response["outputs"][0]["data"]["concepts"]
                                 for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
-                                #for concept in concepts[:10]:
-                                    tag=response["outputs"][0]["data"]["concepts"][index]['name']
+                                    # for concept in concepts[:10]:
+                                    tag = response["outputs"][0]["data"]["concepts"][index]['name']
 
-                                    hash = TagModel.objects.filter(tag_text= tag)
+                                    hash = TagModel.objects.filter(tag_text=tag)
 
-                                    if(hash.__len__()==0):
-                                        hash=TagModel(tag_text=tag)
+                                    if (hash.__len__() == 0):
+                                        hash = TagModel(tag_text=tag)
                                         hash.save()
                                     else:
-                                        hash=hash[0]
+                                        hash = hash[0]
 
-                                    fetch=FetchModel(id_of_tag=hash,id_of_post=post)
+                                    fetch = FetchModel(id_of_tag=hash, id_of_post=post)
                                     fetch.save()
                                 return redirect('/social/feed/')
 
@@ -175,36 +179,37 @@ def feed_view(request):
             if existing_like:
                 post.has_liked = True
 
-            comments=CommentModel.objects.filter(post=post.id)
+            comments = CommentModel.objects.filter(post=post.id)
             pos = 0
             neg = 0
             for comment in comments:
 
-                if comment.review>=0.6:
-                    pos+=1
+                if comment.review == "positive":
+                    pos += 1
 
                 else:
-                    neg+=1
+                    neg += 1
             print pos
 
-            if pos>neg:
-                post.has_recommended=True
+            if pos > neg:
+                post.has_recommended = True
             else:
-                post.has_recommended=False
+                post.has_recommended = False
 
         return render(request, 'feed.html', {'posts': posts})
     else:
 
         return redirect('/social/login/')
 
-#retriving images based on analysis of content
+
+# retriving images based on analysis of content
 def tag_view(request):
     user = check_validation(request)
     if user:
         q = request.GET.get('q')
-        hash= TagModel.objects.filter(tag_text = q).first()
+        hash = TagModel.objects.filter(tag_text=q).first()
         posts = FetchModel.objects.filter(id_of_tag=hash)
-        posts=[ post.id_of_post for post in posts ]
+        posts = [post.id_of_post for post in posts]
         if (posts == []):
             return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
         for post in posts:
@@ -215,13 +220,14 @@ def tag_view(request):
     else:
         return redirect('/social/login/')
 
-def tag_view_u(request,hash_tag):
+
+def tag_view_u(request, hash_tag):
     user = check_validation(request)
     if user:
 
-        hash= TagModel.objects.filter(tag_text = hash_tag).first()
+        hash = TagModel.objects.filter(tag_text=hash_tag).first()
         posts = FetchModel.objects.filter(id_of_tag=hash)
-        posts=[post.id_of_post for post in posts]
+        posts = [post.id_of_post for post in posts]
         if (posts == []):
             # make a 404 page and render it
             return HttpResponse("<H1><CENTER>NO SUCH TAG FOUND</H1>")
@@ -233,13 +239,14 @@ def tag_view_u(request,hash_tag):
     else:
         return redirect('/social/login/')
 
+
 def user_view(request):
-    user=check_validation(request)
+    user = check_validation(request)
 
     if user:
-        query=request.GET.get('q')
-        user=UserModel.objects.filter(username=query).first()
-        posts=PostModel.objects.filter(user=user)
+        query = request.GET.get('q')
+        user = UserModel.objects.filter(username=query).first()
+        posts = PostModel.objects.filter(user=user)
         for post in posts:
             existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
             if existing_like:
@@ -248,16 +255,17 @@ def user_view(request):
     else:
         return redirect('/social/login/')
 
-def user_view_u(request,user_name):
-    user=check_validation(request)
+
+def user_view_u(request, user_name):
+    user = check_validation(request)
 
     if user:
-        user=UserModel.objects.filter(username=user_name).first()
-        posts=PostModel.objects.filter(user=user)
-        #not_neccessary to make list
-        posts=[post for post in posts]
-        if posts==[]:
-            #make a 404 page and render it
+        user = UserModel.objects.filter(username=user_name).first()
+        posts = PostModel.objects.filter(user=user)
+        # not_neccessary to make list
+        posts = [post for post in posts]
+        if posts == []:
+            # make a 404 page and render it
             return HttpResponse("<h1>No such user found</h1>")
         else:
             for post in posts:
@@ -275,16 +283,16 @@ def like_view(request):
         form = LikeForm(request.POST)
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
-            post=PostModel.objects.filter(pk=post_id)
+            post = PostModel.objects.filter(pk=post_id)
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
             if not existing_like:
                 LikeModel.objects.create(post_id=post_id, user=user)
-                post.has_liked=True
+                post.has_liked = True
             else:
-                post.has_liked=False
+                post.has_liked = False
                 existing_like.delete()
 
-            return redirect('detail',post_id=post_id)
+            return redirect('detail', post_id=post_id)
     else:
         return redirect('/social/login/')
 
@@ -299,20 +307,23 @@ def comment_view(request):
             post = PostModel.objects.filter(pk=post_id)
             comment_text = str(form.cleaned_data.get('comment_text'))
             set_api_key('qvGZYufnXUmQNxbFi6h4GDlNtu30HKzhFxJvMUnAdNc')
-            review=sentiment(comment_text)
+            review = sentiment(comment_text)
 
             if review['sentiment']:
-                comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text,review=review['sentiment'])
+                comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text,
+                                                      review=review['sentiment'])
                 comment.save()
-                return redirect('detail',post_id=post_id)
+                return redirect('detail', post_id=post_id)
     else:
         return redirect('/social/login/')
+
 
 def logout_view(request):
     request.session.modified = True
     response = redirect('/social/login/')
     response.delete_cookie(key='session_token')
     return response
+
 
 # For validating the session
 def check_validation(request):
